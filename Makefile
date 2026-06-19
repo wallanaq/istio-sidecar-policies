@@ -3,7 +3,7 @@
 # Provisions the Kubernetes cluster and installs all platform components.
 # Usage: make infra
 # ─────────────────────────────────────────────────────────────────────────────
-.PHONY: infra kubernetes istio keycloak clean
+.PHONY: infra kubernetes istio keycloak bin-checker-service deploy-bin-checker-service clean
 
 kubernetes:
 	@echo "==> [1/3] Starting the Kubernetes cluster managed by OrbStack..."
@@ -33,3 +33,19 @@ clean:
 	@echo "==> Resetting OrbStack Kubernetes cluster..."
 	orbctl stop
 	orbctl reset -y
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Applications
+# Builds application JARs and container images.
+# Usage: make bin-checker-service
+# ─────────────────────────────────────────────────────────────────────────────
+bin-checker-service:
+	@echo "==> [1/1] Building container image local/apps/bin-checker-service:latest..."
+	docker build -f apps/bin-checker-service/Dockerfile -t local/apps/bin-checker-service:latest .
+
+deploy-bin-checker-service: bin-checker-service
+	@echo "==> [1/3] Applying bin-checker-service manifests..."
+	kubectl apply -f apps/bin-checker-service/infra/kubernetes
+	@echo "==> [2/3] Waiting for bin-checker-service to be ready..."
+	kubectl rollout status deployment/bin-checker-service -n bin-checker-service --timeout=120s
+	@echo "==> [3/3] Done — http://bin-checker-service.k8s.orb.local"

@@ -1,0 +1,37 @@
+@dns = k8s.orb.local
+
+###################################################
+### Auth - well-known
+###################################################
+GET http://keycloak.{{dns}}/realms/master/.well-known/openid-configuration
+
+###################################################
+### Auth - access_token
+###################################################
+# @name auth
+POST http://keycloak.{{dns}}/realms/master/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id=rest-client
+&client_secret=mdcmC4K9Jk9ocP9LYIcNSU7NrMEa9Fwq
+&scope=openid
+
+### access_token
+@access_token = {{auth.response.body.access_token}}
+###################################################
+### Auth - well-known
+###################################################
+
+###################################################
+### BinChecker - health
+###################################################
+GET http://bin-checker-service.{{dns}}/actuator/health
+Accept: application/json
+
+###################################################
+### BinChecker
+###################################################
+GET http://bin-checker-service.{{dns}}/v1/bin/411111
+Accept: application/json
+Authorization: Bearer {{access_token}}

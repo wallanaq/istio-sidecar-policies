@@ -1,0 +1,25 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: bin-checker-service-authz
+  namespace: bin-checker-service
+spec:
+  selector:
+    matchLabels:
+      app: bin-checker-service
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            paths:
+              - /actuator/health
+              - /actuator/health/liveness
+              - /actuator/health/readiness
+    - to:
+        - operation:
+            paths:
+              - /v1/*
+      from:
+        - source:
+            requestPrincipals:
+              - "*"
