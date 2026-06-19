@@ -1,0 +1,8 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: bin-checker-service-mtls
+  namespace: bin-checker-service
+spec:
+  mtls:
+    mode: STRICT

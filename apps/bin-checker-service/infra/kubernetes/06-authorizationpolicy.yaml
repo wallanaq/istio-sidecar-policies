@@ -1,3 +1,25 @@
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: bin-checker-service-principals
+  namespace: bin-checker-service
+spec:
+  selector:
+    matchLabels:
+      app: bin-checker-service
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notPrincipals:
+              - "cluster.local/ns/istio-system/sa/istio-ingressgateway"
+              - "cluster.local/ns/tokenization-service/sa/tokenization-service-sa"
+      to:
+        - operation:
+            paths:
+              - /v1/*
+---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -15,11 +37,12 @@ spec:
               - /actuator/health
               - /actuator/health/liveness
               - /actuator/health/readiness
-    - to:
-        - operation:
-            paths:
-              - /v1/*
-      from:
+    # Business endpoints — valid JWT required
+    - from:
         - source:
             requestPrincipals:
               - "*"
+      to:
+        - operation:
+            paths:
+              - /v1/*
