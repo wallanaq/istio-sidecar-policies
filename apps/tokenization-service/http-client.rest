@@ -1,0 +1,155 @@
+@dns = k8s.orb.local
+
+###################################################
+### Auth - well-known
+###################################################
+GET http://keycloak.{{dns}}/realms/master/.well-known/openid-configuration
+
+###################################################
+### Auth - access_token
+###################################################
+# @name auth
+POST http://keycloak.{{dns}}/realms/master/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id=rest-client
+&client_secret=mdcmC4K9Jk9ocP9LYIcNSU7NrMEa9Fwq
+&scope=openid
+
+### access_token
+@access_token = {{auth.response.body.access_token}}
+
+###################################################
+### Tokenization - health
+###################################################
+GET http://tokenization-service.{{dns}}/actuator/health
+Accept: application/json
+
+###################################################
+### Tokenization - Visa Crédito (BIN 411111 - Banco do Brasil)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "4111111111111111",
+  "holder_name": "JOSE DA SILVA",
+  "expiration_month": 12,
+  "expiration_year": 2028,
+  "cvv": "123"
+}
+
+###################################################
+### Tokenization - Mastercard Crédito (BIN 510510 - Itaú Unibanco)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "5105105105105100",
+  "holder_name": "MARIA SOUZA",
+  "expiration_month": 6,
+  "expiration_year": 2027,
+  "cvv": "456"
+}
+
+###################################################
+### Tokenization - Amex Crédito (BIN 376449 - American Express)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "376449000000000",
+  "holder_name": "CARLOS PEREIRA",
+  "expiration_month": 9,
+  "expiration_year": 2029,
+  "cvv": "1234"
+}
+
+###################################################
+### Tokenization - Hipercard Crédito (BIN 606282 - Hipercard)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "6062820000000003",
+  "holder_name": "ANA LIMA",
+  "expiration_month": 3,
+  "expiration_year": 2030,
+  "cvv": "789"
+}
+
+###################################################
+### Tokenization - Elo Débito (BIN 526492 - Nubank)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "5264920000000009",
+  "holder_name": "FERNANDA COSTA",
+  "expiration_month": 1,
+  "expiration_year": 2031,
+  "cvv": "321"
+}
+
+###################################################
+### Tokenization - Erro: cartão expirado
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "4111111111111111",
+  "holder_name": "JOSE DA SILVA",
+  "expiration_month": 1,
+  "expiration_year": 2020,
+  "cvv": "123"
+}
+
+###################################################
+### Tokenization - Erro: número inválido (falha no Luhn)
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "4111111111111112",
+  "holder_name": "JOSE DA SILVA",
+  "expiration_month": 12,
+  "expiration_year": 2028,
+  "cvv": "123"
+}
+
+###################################################
+### Tokenization - Erro: BIN desconhecido
+###################################################
+POST http://tokenization-service.{{dns}}/v1/card/tokenize
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "card_number": "9999999999999995",
+  "holder_name": "JOSE DA SILVA",
+  "expiration_month": 12,
+  "expiration_year": 2028,
+  "cvv": "123"
+}

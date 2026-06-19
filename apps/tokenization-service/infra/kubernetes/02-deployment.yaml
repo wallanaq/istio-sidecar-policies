@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tokenization-service
+  namespace: tokenization-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tokenization-service
+  template:
+    metadata:
+      labels:
+        app: tokenization-service
+    spec:
+      serviceAccountName: tokenization-service-sa
+      containers:
+        - name: tokenization-service
+          image: local/apps/tokenization-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: CLIENTS_BIN_CHECKER_URL
+              value: "http://bin-checker-service-svc.bin-checker-service.svc.cluster.local"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

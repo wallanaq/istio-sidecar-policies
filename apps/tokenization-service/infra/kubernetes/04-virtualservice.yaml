@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: tokenization-service-vs
+  namespace: tokenization-service
+spec:
+  hosts:
+    - tokenization-service.k8s.orb.local
+  gateways:
+    - istio-system/istio-gateway
+  http:
+    - route:
+        - destination:
+            host: tokenization-service-svc.tokenization-service.svc.cluster.local
+            port:
+              number: 80
