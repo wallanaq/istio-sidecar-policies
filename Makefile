@@ -3,7 +3,10 @@
 # Provisions the Kubernetes cluster and installs all platform components.
 # Usage: make infra
 # ─────────────────────────────────────────────────────────────────────────────
-.PHONY: infra kubernetes istio keycloak bin-checker-service deploy-bin-checker-service tokenization-service deploy-tokenization-service clean
+ISTIO_VERSION := $(shell istioctl version 2>/dev/null | awk '/client version/{print $$NF; exit}')
+ISTIO_ADDONS  := https://raw.githubusercontent.com/istio/istio/$(ISTIO_VERSION)/samples/addons
+
+.PHONY: infra kubernetes istio keycloak observability bin-checker-service deploy-bin-checker-service tokenization-service deploy-tokenization-service clean
 
 kubernetes:
 	@echo "==> [1/3] Starting the Kubernetes cluster managed by OrbStack..."
@@ -26,6 +29,26 @@ keycloak:
 	kubectl apply -f infra/kubernetes/keycloak
 	@echo "==> [2/2] Waiting for Keycloak to be ready..."
 	kubectl rollout status deployment/keycloak -n keycloak --timeout=180s
+
+observability:
+	@echo "==> Detected Istio version: $(ISTIO_VERSION)"
+	@echo "==> [1/3] Installing Prometheus, Grafana, Jaeger and Kiali addons..."
+	kubectl apply -f $(ISTIO_ADDONS)/prometheus.yaml
+	kubectl apply -f $(ISTIO_ADDONS)/grafana.yaml
+	kubectl apply -f $(ISTIO_ADDONS)/jaeger.yaml
+	kubectl apply -f $(ISTIO_ADDONS)/kiali.yaml
+	@echo "==> [2/3] Waiting for observability stack to be ready..."
+	kubectl rollout status deployment/prometheus -n istio-system --timeout=180s
+	kubectl rollout status deployment/grafana    -n istio-system --timeout=180s
+	kubectl rollout status deployment/jaeger     -n istio-system --timeout=180s
+	kubectl rollout status deployment/kiali      -n istio-system --timeout=180s
+	@echo "==> [3/3] Exposing dashboards via VirtualServices..."
+	kubectl apply -f infra/kubernetes/observability
+	@echo ""
+	@echo "    Kiali      → http://kiali.k8s.orb.local"
+	@echo "    Grafana    → http://grafana.k8s.orb.local"
+	@echo "    Prometheus → http://prometheus.k8s.orb.local"
+	@echo "    Jaeger     → http://jaeger.k8s.orb.local"
 
 infra: kubernetes istio keycloak
 

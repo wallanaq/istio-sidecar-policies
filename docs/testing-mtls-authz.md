@@ -92,7 +92,7 @@ Um pod em namespace **com** `istio-injection` possui sidecar e participa do mTLS
 O handshake TLS ocorre com sucesso e a identidade SPIFFE do pod é verificada. Porém,
 o `principal` do certificado — `cluster.local/ns/test-with-mtls/sa/default` — não
 consta na `AuthorizationPolicy` do `bin-checker-service`, que permite apenas
-`istio-ingressgateway` e `tokenization-service-sa`. O Envoy rejeita a requisição
+`istio-ingressgateway-service-account` e `tokenization-service-sa`. O Envoy rejeita a requisição
 na camada RBAC e retorna `403`.
 
 ### Passos

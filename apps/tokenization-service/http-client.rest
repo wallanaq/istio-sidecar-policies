@@ -14,7 +14,7 @@ Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials
 &client_id=rest-client
-&client_secret=mdcmC4K9Jk9ocP9LYIcNSU7NrMEa9Fwq
+&client_secret=2fvZj1YpJ6QQnjlr3Hx09lgf1xHrkmae
 &scope=openid
 
 ### access_token

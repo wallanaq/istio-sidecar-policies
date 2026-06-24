@@ -7,7 +7,12 @@ spec:
   profile: default
   meshConfig:
     accessLogFile: /dev/stdout
-    enableTracing: false
+    enableTracing: true
+    defaultConfig:
+      tracing:
+        sampling: 100.0
+        zipkin:
+          address: zipkin.istio-system:9411
   components:
     ingressGateways:
       - name: istio-ingressgateway
