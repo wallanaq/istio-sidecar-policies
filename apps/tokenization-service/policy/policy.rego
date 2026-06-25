@@ -2,15 +2,14 @@ package tokenization_service
 
 default allow := false
 
-# Health endpoints are public
 allow if {
 	health_path
 }
 
-# /v1/* requires a valid JWT with the tokenizer.write scope
 allow if {
 	startswith(input.attributes.request.http.path, "/v1/")
 	"tokenizer.write" in token_scopes
+	"maintainer" in token_realm_roles
 }
 
 health_path if {
@@ -18,12 +17,14 @@ health_path if {
 	path in {"/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness"}
 }
 
-# Splits the standard space-separated scope string into a set of individual scopes.
 # JWT signature validation is delegated to Istio's RequestAuthentication.
-token_scopes := scopes if {
+token_payload := payload if {
 	[_, payload, _] := io.jwt.decode(bearer_token)
-	scopes := split(payload.scope, " ")
 }
+
+token_scopes := split(token_payload.scope, " ")
+
+token_realm_roles := token_payload.realm_access.roles
 
 bearer_token := token if {
 	auth := input.attributes.request.http.headers.authorization
