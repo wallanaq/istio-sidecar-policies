@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: minio-api-vs
+  namespace: minio
+spec:
+  hosts:
+    - minio-api.k8s.orb.local
+  gateways:
+    - istio-system/istio-gateway
+  http:
+    - route:
+        - destination:
+            host: minio-svc
+            port:
+              number: 9000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: minio-console-vs
+  namespace: minio
+spec:
+  hosts:
+    - minio.k8s.orb.local
+  gateways:
+    - istio-system/istio-gateway
+  http:
+    - route:
+        - destination:
+            host: minio-svc
+            port:
+              number: 9001

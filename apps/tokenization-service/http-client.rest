@@ -1,21 +1,26 @@
 @dns = k8s.orb.local
+@host = http://tokenization-service.{{dns}}
+@realm = dev
 
 ###################################################
 ### Auth - well-known
 ###################################################
-GET http://keycloak.{{dns}}/realms/master/.well-known/openid-configuration
+# @name well_known
+GET http://keycloak.{{dns}}/realms/{{realm}}/.well-known/openid-configuration
 
 ###################################################
 ### Auth - access_token
 ###################################################
 # @name auth
-POST http://keycloak.{{dns}}/realms/master/protocol/openid-connect/token
+POST {{well_known.response.body.token_endpoint}}
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=client_credentials
+grant_type=password
 &client_id=rest-client
-&client_secret=2fvZj1YpJ6QQnjlr3Hx09lgf1xHrkmae
-&scope=openid
+&client_secret=ZoxeWS2LdJEtilfoTxLvJtOnhsnGIQQT
+&username=john.doe
+&password=John123
+&scope=openid tokenizer.write
 
 ### access_token
 @access_token = {{auth.response.body.access_token}}
@@ -23,13 +28,13 @@ grant_type=client_credentials
 ###################################################
 ### Tokenization - health
 ###################################################
-GET http://tokenization-service.{{dns}}/actuator/health
+GET {{host}}/actuator/health
 Accept: application/json
 
 ###################################################
 ### Tokenization - Visa Crédito (BIN 411111 - Banco do Brasil)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -45,7 +50,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Mastercard Crédito (BIN 510510 - Itaú Unibanco)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -61,7 +66,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Amex Crédito (BIN 376449 - American Express)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -77,7 +82,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Hipercard Crédito (BIN 606282 - Hipercard)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -93,7 +98,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Elo Débito (BIN 526492 - Nubank)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -109,7 +114,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Erro: cartão expirado
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -125,7 +130,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Erro: número inválido (falha no Luhn)
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}
@@ -141,7 +146,7 @@ Authorization: Bearer {{access_token}}
 ###################################################
 ### Tokenization - Erro: BIN desconhecido
 ###################################################
-POST http://tokenization-service.{{dns}}/v1/card/tokenize
+POST {{host}}/v1/card/tokenize
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{access_token}}

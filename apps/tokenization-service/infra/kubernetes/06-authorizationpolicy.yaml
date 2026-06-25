@@ -1,7 +1,7 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: tokenization-service-authz
+  name: tokenization-service-allow
   namespace: tokenization-service
 spec:
   selector:
@@ -15,11 +15,29 @@ spec:
               - /actuator/health
               - /actuator/health/liveness
               - /actuator/health/readiness
+    - from:
+        - source:
+            requestPrincipals:
+              - "*"
+      to:
+        - operation:
+            paths:
+              - /v1/*
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: tokenization-service-authz
+  namespace: tokenization-service
+spec:
+  selector:
+    matchLabels:
+      app: tokenization-service
+  action: CUSTOM
+  provider:
+    name: opa-ext-authz
+  rules:
     - to:
         - operation:
             paths:
               - /v1/*
-      from:
-        - source:
-            requestPrincipals:
-              - "*"

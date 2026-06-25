@@ -17,7 +17,7 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.2
-          args: ["start-dev"]
+          args: ["start-dev", "--import-realm"]
           env:
             - name: KEYCLOAK_ADMIN
               valueFrom:
@@ -67,3 +67,10 @@ spec:
               port: 9000
             periodSeconds: 15
             failureThreshold: 3
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: realm-import
+          configMap:
+            name: keycloak-realm

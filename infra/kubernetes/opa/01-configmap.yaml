@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-config
+  namespace: opa
+data:
+  config.yaml: |
+    services:
+      minio:
+        url: http://minio-svc.minio.svc.cluster.local:9000
+
+    bundles:
+      tokenization_service:
+        service: minio
+        resource: /opa-bundles/tokenization-service/bundle.tar.gz
+        polling:
+          min_delay_seconds: 30
+          max_delay_seconds: 60
+
+    plugins:
+      envoy_ext_authz_grpc:
+        addr: :9191
+        path: tokenization_service/allow
+
+    decision_logs:
+      console: true

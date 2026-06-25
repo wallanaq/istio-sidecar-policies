@@ -13,6 +13,11 @@ spec:
         sampling: 100.0
         zipkin:
           address: zipkin.istio-system:9411
+    extensionProviders:
+      - name: opa-ext-authz
+        envoyExtAuthzGrpc:
+          service: opa-svc.opa.svc.cluster.local
+          port: 9191
   components:
     ingressGateways:
       - name: istio-ingressgateway

@@ -23,10 +23,10 @@ TOKEN=$(kubectl run get-token \
   --namespace=default \
   --rm -it --restart=Never \
   -- curl -s -X POST \
-     "http://keycloak-svc.keycloak.svc.cluster.local/realms/master/protocol/openid-connect/token" \
+     "http://keycloak-svc.keycloak.svc.cluster.local/realms/dev/protocol/openid-connect/token" \
      -d "grant_type=client_credentials" \
      -d "client_id=rest-client" \
-     -d "client_secret=mdcmC4K9Jk9ocP9LYIcNSU7NrMEa9Fwq" \
+     -d "client_secret=ZoxeWS2LdJEtilfoTxLvJtOnhsnGIQQT" \
   | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
 echo $TOKEN
