@@ -5,6 +5,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 ISTIO_VERSION := $(shell istioctl version 2>/dev/null | awk '/client version/{print $$NF; exit}')
 ISTIO_ADDONS  := https://raw.githubusercontent.com/istio/istio/$(ISTIO_VERSION)/samples/addons
+REGISTRY      := ghcr.io/wallanaq
 
 .PHONY: infra kubernetes istio keycloak observability minio opa clean
 
@@ -93,29 +94,40 @@ clean:
 # Builds application JARs and container images.
 # Usage: make deploy-bin-checker-service | make deploy-tokenization-service
 # ─────────────────────────────────────────────────────────────────────────────
-.PHONY: bin-checker-service deploy-bin-checker-service tokenization-service deploy-tokenization-service
+.PHONY: bin-checker-service push-bin-checker-service deploy-bin-checker-service
+.PHONY: tokenization-service push-tokenization-service deploy-tokenization-service
 
 bin-checker-service:
 	@echo "==> [1/1] Building container image local/apps/bin-checker-service:latest..."
 	docker build -f apps/bin-checker-service/Dockerfile -t local/apps/bin-checker-service:latest .
 
+push-bin-checker-service: bin-checker-service
+	@echo "==> [1/1] Pushing $(REGISTRY)/bin-checker-service:latest..."
+	docker tag local/apps/bin-checker-service:latest $(REGISTRY)/bin-checker-service:latest
+	docker push $(REGISTRY)/bin-checker-service:latest
+
 deploy-bin-checker-service: bin-checker-service
-	@echo "==> [1/3] Applying bin-checker-service manifests..."
+	@echo "==> [1/2] Applying bin-checker-service manifests..."
 	kubectl apply -f apps/bin-checker-service/infra/kubernetes
-	@echo "==> [2/3] Waiting for bin-checker-service to be ready..."
+	@echo "==> [2/2] Waiting for bin-checker-service to be ready..."
 	kubectl rollout status deployment/bin-checker-service -n bin-checker-service --timeout=120s
-	@echo "==> [3/3] Done — http://bin-checker-service.k8s.orb.local"
+	@echo "    Done — http://bin-checker-service.k8s.orb.local"
 
 tokenization-service:
 	@echo "==> [1/1] Building container image local/apps/tokenization-service:latest..."
 	docker build -f apps/tokenization-service/Dockerfile -t local/apps/tokenization-service:latest .
 
+push-tokenization-service: tokenization-service
+	@echo "==> [1/1] Pushing $(REGISTRY)/tokenization-service:latest..."
+	docker tag local/apps/tokenization-service:latest $(REGISTRY)/tokenization-service:latest
+	docker push $(REGISTRY)/tokenization-service:latest
+
 deploy-tokenization-service: tokenization-service
-	@echo "==> [1/3] Applying tokenization-service manifests..."
+	@echo "==> [1/2] Applying tokenization-service manifests..."
 	kubectl apply -f apps/tokenization-service/infra/kubernetes
-	@echo "==> [2/3] Waiting for tokenization-service to be ready..."
+	@echo "==> [2/2] Waiting for tokenization-service to be ready..."
 	kubectl rollout status deployment/tokenization-service -n tokenization-service --timeout=120s
-	@echo "==> [3/3] Done — http://tokenization-service.k8s.orb.local"
+	@echo "    Done — http://tokenization-service.k8s.orb.local"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Policies
