@@ -1,0 +1,16 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: bin-checker-service
+  namespace: bin-checker-service
+spec:
+  selector:
+    matchLabels:
+      app: bin-checker-service
+  jwtRules:
+    - issuer: "http://keycloak.keycloak.svc.cluster.local/realms/dev"
+      jwksUri: "http://keycloak.keycloak.svc.cluster.local/realms/dev/protocol/openid-connect/certs"
+      forwardOriginalToken: true
+    - issuer: "http://keycloak.k8s.orb.local/realms/dev"
+      jwksUri: "http://keycloak.keycloak.svc.cluster.local/realms/dev/protocol/openid-connect/certs"
+      forwardOriginalToken: true

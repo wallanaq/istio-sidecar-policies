@@ -11,15 +11,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "${MANAGEMENT_ENDPOINTS_EXPOSURE:*}"
   endpoint:
     health:
-      show-details: always
+      show-details: "${MANAGEMENT_HEALTH_SHOW_DETAILS:always}"
       probes:
         enabled: true
 
 clients:
   bin-checker:
-    url: http://bin-checker-service:8080
-    connect-timeout: 2000
-    read-timeout: 5000
+    url: "${CLIENTS_BIN_CHECKER_URL:http://bin-checker-service:8080}"
+    connect-timeout: "${CLIENTS_BIN_CHECKER_CONNECT_TIMEOUT:2000}"
+    read-timeout: "${CLIENTS_BIN_CHECKER_READ_TIMEOUT:5000}"

@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: bin-checker-service-svc
-  namespace: bin-checker-service
+  name: keycloak
+  namespace: keycloak
 spec:
+  type: ClusterIP
   selector:
-    app: bin-checker-service
+    app: keycloak
   ports:
     - name: http
       port: 80
       targetPort: 8080
+      protocol: TCP

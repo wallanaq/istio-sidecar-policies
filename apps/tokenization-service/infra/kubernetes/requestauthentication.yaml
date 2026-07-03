@@ -1,7 +1,7 @@
 apiVersion: security.istio.io/v1beta1
 kind: RequestAuthentication
 metadata:
-  name: tokenization-service-jwt
+  name: tokenization-service
   namespace: tokenization-service
 spec:
   selector:
@@ -9,5 +9,5 @@ spec:
       app: tokenization-service
   jwtRules:
     - issuer: "http://keycloak.k8s.orb.local/realms/dev"
-      jwksUri: "http://keycloak-svc.keycloak.svc.cluster.local/realms/dev/protocol/openid-connect/certs"
+      jwksUri: "http://keycloak.keycloak.svc.cluster.local/realms/dev/protocol/openid-connect/certs"
       forwardOriginalToken: true

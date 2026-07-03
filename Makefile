@@ -21,19 +21,19 @@ istio:
 	@echo "==> [1/3] Creating istio-system namespace..."
 	kubectl create namespace istio-system --dry-run=client -o yaml | kubectl apply -f -
 	@echo "==> [2/3] Installing Istio with default profile via IstioOperator..."
-	istioctl install -f infra/kubernetes/istio/01-operator.yaml -y
+	istioctl install -f infra/kubernetes/istio/operator.yaml -y
 	@echo "==> [3/3] Applying Gateway manifest..."
-	kubectl apply -f infra/kubernetes/istio/02-gateway.yaml
+	kubectl apply -k infra/kubernetes/istio
 
 keycloak:
 	@echo "==> [1/4] Ensuring keycloak namespace exists..."
 	kubectl create namespace keycloak --dry-run=client -o yaml | kubectl apply -f -
 	@echo "==> [2/4] Creating realm ConfigMap from infra/keycloak/realm-export.json..."
-	kubectl create configmap keycloak-realm \
+	kubectl create configmap keycloak-realm -n keycloak \
 		--from-file=realm-export.json=infra/keycloak/realm-export.json \
-		-n keycloak --dry-run=client -o yaml | kubectl apply -f -
+		--dry-run=client -o yaml | kubectl apply -f -
 	@echo "==> [3/4] Applying Keycloak manifests..."
-	kubectl apply -f infra/kubernetes/keycloak
+	kubectl apply -k infra/kubernetes/keycloak
 	@echo "==> [4/4] Waiting for Keycloak to be ready..."
 	kubectl rollout status deployment/keycloak -n keycloak --timeout=180s
 	@echo ""
@@ -52,7 +52,7 @@ observability:
 	kubectl rollout status deployment/jaeger     -n istio-system --timeout=180s
 	kubectl rollout status deployment/kiali      -n istio-system --timeout=180s
 	@echo "==> [3/3] Exposing dashboards via VirtualServices..."
-	kubectl apply -f infra/kubernetes/observability
+	kubectl apply -k infra/kubernetes/observability
 	@echo ""
 	@echo "    Kiali      → http://kiali.k8s.orb.local"
 	@echo "    Grafana    → http://grafana.k8s.orb.local"
@@ -61,7 +61,7 @@ observability:
 
 minio:
 	@echo "==> [1/3] Applying MinIO manifests..."
-	kubectl apply -f infra/kubernetes/minio
+	kubectl apply -k infra/kubernetes/minio
 	@echo "==> [2/3] Waiting for MinIO to be ready..."
 	kubectl rollout status deployment/minio -n minio --timeout=120s
 	@echo "==> [3/3] Creating opa-bundles bucket..."
@@ -70,15 +70,14 @@ minio:
 		--namespace=minio \
 		--rm --attach --restart=Never --command \
 		--overrides='{"metadata":{"annotations":{"sidecar.istio.io/inject":"false"}}}' \
-		-- sh -c 'mc alias set local http://minio-svc:9000 minioadmin minioadmin && mc mb local/opa-bundles --ignore-existing && mc version enable local/opa-bundles && mc anonymous set download local/opa-bundles'
+		-- sh -c 'mc alias set local http://minio:9000 minioadmin minioadmin && mc mb local/opa-bundles --ignore-existing && mc version enable local/opa-bundles && mc anonymous set download local/opa-bundles'
 	@echo ""
-	@echo "    Console → http://minio.k8s.orb.local     (minioadmin / minioadmin)"
 	@echo "    API     → http://minio-api.k8s.orb.local"
-
+	@echo "    Console → http://minio.k8s.orb.local (minioadmin / minioadmin)"
 
 opa:
 	@echo "==> [1/2] Applying OPA manifests..."
-	kubectl apply -f infra/kubernetes/opa
+	kubectl apply -k infra/kubernetes/opa
 	@echo "==> [2/2] Waiting for OPA to be ready..."
 	kubectl rollout status deployment/opa -n opa --timeout=120s
 
@@ -95,7 +94,6 @@ clean:
 # Usage: make deploy-bin-checker-service | make deploy-tokenization-service
 # ─────────────────────────────────────────────────────────────────────────────
 .PHONY: bin-checker-service push-bin-checker-service deploy-bin-checker-service
-.PHONY: tokenization-service push-tokenization-service deploy-tokenization-service
 
 bin-checker-service:
 	@echo "==> [1/1] Building container image local/apps/bin-checker-service:latest..."
@@ -108,10 +106,12 @@ push-bin-checker-service: bin-checker-service
 
 deploy-bin-checker-service: bin-checker-service
 	@echo "==> [1/2] Applying bin-checker-service manifests..."
-	kubectl apply -f apps/bin-checker-service/infra/kubernetes
+	kubectl apply -k apps/bin-checker-service/infra/kubernetes
 	@echo "==> [2/2] Waiting for bin-checker-service to be ready..."
 	kubectl rollout status deployment/bin-checker-service -n bin-checker-service --timeout=120s
 	@echo "    Done — http://bin-checker-service.k8s.orb.local"
+
+.PHONY: tokenization-service push-tokenization-service deploy-tokenization-service
 
 tokenization-service:
 	@echo "==> [1/1] Building container image local/apps/tokenization-service:latest..."
@@ -124,7 +124,7 @@ push-tokenization-service: tokenization-service
 
 deploy-tokenization-service: tokenization-service
 	@echo "==> [1/2] Applying tokenization-service manifests..."
-	kubectl apply -f apps/tokenization-service/infra/kubernetes
+	kubectl apply -k apps/tokenization-service/infra/kubernetes
 	@echo "==> [2/2] Waiting for tokenization-service to be ready..."
 	kubectl rollout status deployment/tokenization-service -n tokenization-service --timeout=120s
 	@echo "    Done — http://tokenization-service.k8s.orb.local"

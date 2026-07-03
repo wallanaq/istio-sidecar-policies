@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: minio-api-vs
+  name: minio-api
   namespace: minio
 spec:
   hosts:
@@ -11,14 +11,14 @@ spec:
   http:
     - route:
         - destination:
-            host: minio-svc
+            host: minio
             port:
               number: 9000
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: minio-console-vs
+  name: minio-console
   namespace: minio
 spec:
   hosts:
@@ -28,6 +28,6 @@ spec:
   http:
     - route:
         - destination:
-            host: minio-svc
+            host: minio
             port:
               number: 9001

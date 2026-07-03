@@ -2,7 +2,7 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: kiali-vs
+  name: kiali
   namespace: istio-system
 spec:
   hosts:
@@ -19,7 +19,7 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: grafana-vs
+  name: grafana
   namespace: istio-system
 spec:
   hosts:
@@ -36,7 +36,7 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: prometheus-vs
+  name: prometheus
   namespace: istio-system
 spec:
   hosts:
@@ -53,7 +53,7 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: jaeger-vs
+  name: jaeger
   namespace: istio-system
 spec:
   hosts:

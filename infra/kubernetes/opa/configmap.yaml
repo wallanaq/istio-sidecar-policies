@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: opa-config
+  name: opa
   namespace: opa
 data:
   config.yaml: |
     services:
       minio:
-        url: http://minio-svc.minio.svc.cluster.local:9000
+        url: http://minio.minio.svc.cluster.local:9000
 
     bundles:
       tokenization_service:

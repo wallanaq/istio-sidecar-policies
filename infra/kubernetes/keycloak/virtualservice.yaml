@@ -1,16 +1,19 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: tokenization-service-vs
-  namespace: tokenization-service
+  name: keycloak
+  namespace: keycloak
 spec:
   hosts:
-    - tokenization-service.k8s.orb.local
+    - keycloak.k8s.orb.local
   gateways:
     - istio-system/istio-gateway
   http:
-    - route:
+    - match:
+        - uri:
+            prefix: /
+      route:
         - destination:
-            host: tokenization-service-svc.tokenization-service.svc.cluster.local
+            host: keycloak
             port:
               number: 80

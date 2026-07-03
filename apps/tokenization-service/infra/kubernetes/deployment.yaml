@@ -13,7 +13,7 @@ spec:
       labels:
         app: tokenization-service
     spec:
-      serviceAccountName: tokenization-service-sa
+      serviceAccountName: tokenization-service
       containers:
         - name: tokenization-service
           image: local/apps/tokenization-service:latest
@@ -23,7 +23,7 @@ spec:
               containerPort: 8080
           env:
             - name: CLIENTS_BIN_CHECKER_URL
-              value: "http://bin-checker-service-svc.bin-checker-service.svc.cluster.local"
+              value: "http://bin-checker-service.bin-checker-service.svc.cluster.local"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

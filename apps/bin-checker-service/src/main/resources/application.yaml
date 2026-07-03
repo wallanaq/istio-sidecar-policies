@@ -11,9 +11,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "${MANAGEMENT_ENDPOINTS_EXPOSURE:*}"
   endpoint:
     health:
-      show-details: always
+      show-details: "${MANAGEMENT_HEALTH_SHOW_DETAILS:always}"
       probes:
         enabled: true

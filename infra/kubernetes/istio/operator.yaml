@@ -16,7 +16,7 @@ spec:
     extensionProviders:
       - name: opa-ext-authz
         envoyExtAuthzGrpc:
-          service: opa-svc.opa.svc.cluster.local
+          service: opa.opa.svc.cluster.local
           port: 9191
   components:
     ingressGateways:

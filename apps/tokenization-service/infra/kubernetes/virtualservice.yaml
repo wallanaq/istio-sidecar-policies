@@ -1,16 +1,16 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: bin-checker-service-vs
-  namespace: bin-checker-service
+  name: tokenization-service
+  namespace: tokenization-service
 spec:
   hosts:
-    - bin-checker-service.k8s.orb.local
+    - tokenization-service.k8s.orb.local
   gateways:
     - istio-system/istio-gateway
   http:
     - route:
         - destination:
-            host: bin-checker-service-svc.bin-checker-service.svc.cluster.local
+            host: tokenization-service.tokenization-service.svc.cluster.local
             port:
               number: 80

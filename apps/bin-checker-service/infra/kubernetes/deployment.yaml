@@ -13,7 +13,7 @@ spec:
       labels:
         app: bin-checker-service
     spec:
-      serviceAccountName: bin-checker-service-sa
+      serviceAccountName: bin-checker-service
       containers:
         - name: bin-checker-service
           image: local/apps/bin-checker-service:latest

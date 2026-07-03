@@ -13,7 +13,7 @@ spec:
       labels:
         app: keycloak
     spec:
-      serviceAccountName: keycloak-sa
+      serviceAccountName: keycloak
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.2
