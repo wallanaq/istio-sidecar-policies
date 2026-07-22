@@ -26,44 +26,72 @@ A single OPA instance in the `opa` namespace serves as an external authorization
 
 ## Architecture
 
-```
-                         ┌─────────────────────────────────┐
-                         │         Istio Ingress            │
-                         └────────────────┬────────────────┘
-                                          │
-                    ┌─────────────────────▼──────────────────────┐
-                    │           tokenization-service              │
-                    │                                             │
-                    │  RequestAuthentication  (JWT validation)    │
-                    │  AuthorizationPolicy ALLOW  (JWT presence)  │
-                    │  AuthorizationPolicy CUSTOM (OPA)           │
-                    │  PeerAuthentication STRICT  (mTLS)          │
-                    └──────────────┬──────────────────────────────┘
-                                   │ mTLS (service account SPIFFE)
-                    ┌──────────────▼──────────────────────────────┐
-                    │           bin-checker-service               │
-                    │                                             │
-                    │  AuthorizationPolicy DENY  (principals)     │
-                    │  AuthorizationPolicy ALLOW (JWT presence)   │
-                    │  PeerAuthentication STRICT  (mTLS)          │
-                    └─────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  Ingress["Istio Ingress"]
 
-         ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-         │   Keycloak   │       │     OPA      │       │    MinIO     │
-         │  (identity)  │       │  (ext_authz) │◄──────│  (bundles)  │
-         └──────────────┘       └──────────────┘       └──────────────┘
+  subgraph TS["tokenization-service Pod"]
+    direction LR
+    subgraph TSSidecar["Istio Sidecar"]
+      direction LR
+      TS1["RequestAuthentication<br/>(JWT validation)"]
+      TS2["AuthorizationPolicy ALLOW<br/>(JWT presence)"]
+      TS3["AuthorizationPolicy CUSTOM<br/>(OPA)"]
+      TS4["PeerAuthentication STRICT<br/>(mTLS)"]
+    end
+    TSApp["Application container<br/>(zero auth code)"]
+  end
+
+  subgraph BC["bin-checker-service Pod"]
+    direction TB
+    BCApp["Application container<br/>(zero auth code)"]
+    subgraph BCSidecar["Istio Sidecar"]
+      direction LR
+      BC1["PeerAuthentication STRICT<br/>(mTLS)"]
+      BC2["RequestAuthentication<br/>(JWT validation)"]
+      BC3["AuthorizationPolicy DENY<br/>(principals)"]
+      BC4["AuthorizationPolicy ALLOW<br/>(JWT presence)"]
+    end
+  end
+
+  subgraph KeycloakPod["Keycloak"]
+    Keycloak["Keycloak<br/>(identity)"]
+  end
+
+  subgraph OPAPod["OPA Pod"]
+    direction LR
+    OPA["OPA<br/>(ext_authz)"]
+  end
+
+  subgraph MinIOPod["MinIO Pod"]
+    MinIO["MinIO<br/>(bundles)"]
+  end
+
+  Ingress --> TSSidecar
+  TS1 --> TS2
+  TS2 --> TS3
+  TS3 -->|"Success"| TSApp
+  TSApp -->|"Call Bin-Checker-Service (Egress)"| TS4
+  TS4 -->|"mTLS (service account SPIFFE)"| BC1
+  BC1 --> BC2
+  BC2 --> BC3
+  BC3 --> BC4
+  TS1 -->|"Get JWKS"| Keycloak
+  BC2 -->|"Get JWKS"| Keycloak
+  BC4 --> BCApp
+  TS3 -->|"ext_authz gRPC"| OPA
+  MinIO --> OPA
 ```
 
 ### OPA authorization flow for `POST /v1/*`
 
-```
-Request → Istio sidecar → OPA gRPC (ext_authz)
-                               │
-                               ▼
-                    token has tokenizer.write scope?
-                    token has maintainer realm role?
-                               │
-                        allow / deny
+```mermaid
+flowchart LR
+    A["Request"] --> B["Istio sidecar"]
+    B --> C["OPA gRPC (ext_authz)"]
+    C --> D{"tokenizer.write scope?<br/>maintainer realm role?"}
+    D -->|yes| E["allow"]
+    D -->|no| F["deny"]
 ```
 
 ---
